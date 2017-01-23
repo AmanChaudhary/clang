@@ -993,7 +993,7 @@ class FormatTokenLexer {
 public:
   FormatTokenLexer(Lexer &Lex, SourceManager &SourceMgr, FormatStyle &Style,
                    encoding::Encoding Encoding)
-      : FormatTok(NULL), IsFirstToken(true), GreaterStashed(false), Column(0),
+      : FormatTok(NULL), IsFirstToken(true), FormattingDisabled(false), GreaterStashed(false), Column(0),
         TrailingWhitespace(0), Lex(Lex), SourceMgr(SourceMgr), Style(Style),
         IdentTable(getFormattingLangOpts()), Encoding(Encoding) {
     Lex.SetKeepWhitespaceMode(true);
@@ -1179,6 +1179,7 @@ private:
 
   FormatToken *FormatTok;
   bool IsFirstToken;
+  bool FormattingDisabled;
   bool GreaterStashed;
   unsigned Column;
   unsigned TrailingWhitespace;
@@ -1201,6 +1202,25 @@ private:
       Tok.Tok.setKind(tok::string_literal);
       Tok.IsUnterminatedLiteral = true;
     }
+
+	if (Tok.is(tok::comment) && 
+			(Tok.TokenText == "// clang-format on" || 
+			 Tok.TokenText == "// clang-format-tmp on " ||
+			 Tok.TokenText == "/* clang-format on */" ||
+			 Tok.TokenText == "/* clang-format-tmp on */")) {
+		FormattingDisabled = false;
+	}
+
+	Tok.Finalized = FormattingDisabled;
+
+	if (Tok.is(tok::comment) && 
+			(Tok.TokenText == "// clang-format off" ||
+			 Tok.TokenText == "// clang-format-tmp off " ||
+			 Tok.TokenText == "/* clang-format off */" ||
+			 Tok.TokenText == "/* clang-format-tmp off */")) {
+		FormattingDisabled = true;
+	}
+
   }
 };
 

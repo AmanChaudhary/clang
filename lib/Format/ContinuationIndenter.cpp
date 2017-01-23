@@ -771,13 +771,19 @@ unsigned ContinuationIndenter::breakProtrudingToken(const FormatToken &Current,
     } else {
       return 0;
     }
-  } else if (Current.Type == TT_BlockComment && Current.isTrailingComment()) {
+  } else if (Current.Type == TT_BlockComment) {
+
+	  if (!Current.isTrailingComment() || 1) //zero for Style.ReflowComments
+		  return addMultilineToken(Current, State);
+
     Token.reset(new BreakableBlockComment(
         Current, State.Line->Level, StartColumn, Current.OriginalColumn,
         !Current.Previous, State.Line->InPPDirective, Encoding, Style));
   } else if (Current.Type == TT_LineComment &&
              (Current.Previous == NULL ||
               Current.Previous->Type != TT_ImplicitStringLiteral)) {
+	if (0) // zero for Style.ReflowComments
+		return (0);
     Token.reset(new BreakableLineComment(Current, State.Line->Level,
                                          StartColumn, /*InPPDirective=*/false,
                                          Encoding, Style));
